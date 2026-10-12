@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Demo · Il Fratelli</title>
+<meta name="description" content="Así quedaría el sistema de Il Fratelli: pedidos, stock, bots de WhatsApp e Instagram, reparto y cobranza. Demo con datos de ejemplo.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Demo · Il Fratelli">
+<meta property="og:description" content="Así quedaría el sistema de Il Fratelli: pedidos, stock, bots de WhatsApp e Instagram, reparto y cobranza. Demo con datos de ejemplo.">
+<meta property="og:url" content="https://torresito1991.github.io/demo-fratelli/">
+<meta property="og:image" content="https://torresito1991.github.io/demo-fratelli/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<style>body{margin:0}</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: app de operación. Barra lateral oscura fija con las secciones; arriba una barra con fecha y búsqueda; contenido en tarjetas. El detalle del pedido abre en un panel lateral. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --sunk: #f4f6f8;
+  --ink: #141a21;
+  --ink-2: #3a4652;
+  --muted: #6b7783;
+  --line: #e1e6eb;
+  --side: #161b21;
+  --side-ink: #c9d1d9;
+  --side-muted: #7d8894;
+  --side-hover: #222932;
+  --accent: #d6452b;
+  --accent-soft: #fbe6e1;
+  --accent-ink: #ffffff;
+  --frost: #2d78a8;  --frost-soft: #e1eef7;
+  --ok: #23845a;     --ok-soft: #dff3e9;
+  --warn: #b26a00;   --warn-soft: #fcefd9;
+  --crit: #c93a22;   --crit-soft: #fbe3de;
+  --wa-bg: #efe7de; --wa-in: #ffffff; --wa-out: #d9fdd3; --wa-top: #075e54;
+  --s-margherita: #d6452b; --s-rucula: #8fb63c; --s-pepperoni: #a8281e; --s-funghi: #8a6748; --s-pesto: #2f6f5e; --s-verdura: #d9a521;
+  --shadow: 0 1px 2px rgba(20,26,33,.06), 0 4px 16px rgba(20,26,33,.06);
+  --shadow-lg: 0 24px 60px rgba(20,26,33,.22);
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d1116; --surface: #161c23; --sunk: #1c242c; --ink: #e8edf2; --ink-2: #c3ccd5; --muted: #8b97a3; --line: #26303a;
+  --side: #0a0e12; --side-ink: #c9d1d9; --side-muted: #6f7a86; --side-hover: #161c23;
+  --accent: #ec5d43; --accent-soft: #3a1b15; --accent-ink: #1a0905;
+  --frost: #6fb3dd; --frost-soft: #13293a; --ok: #5cc794; --ok-soft: #12301f; --warn: #f0b04f; --warn-soft: #36270d; --crit: #f07a63; --crit-soft: #3a1914;
+  --wa-bg: #0b141a; --wa-in: #202c33; --wa-out: #005c4b; --wa-top: #1f2c34;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25); --shadow-lg: 0 24px 60px rgba(0,0,0,.5);
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0d1116; --surface: #161c23; --sunk: #1c242c; --ink: #e8edf2; --ink-2: #c3ccd5; --muted: #8b97a3; --line: #26303a;
+  --side: #0a0e12; --side-ink: #c9d1d9; --side-muted: #6f7a86; --side-hover: #161c23;
+  --accent: #ec5d43; --accent-soft: #3a1b15; --accent-ink: #1a0905;
+  --frost: #6fb3dd; --frost-soft: #13293a; --ok: #5cc794; --ok-soft: #12301f; --warn: #f0b04f; --warn-soft: #36270d; --crit: #f07a63; --crit-soft: #3a1914;
+  --wa-bg: #0b141a; --wa-in: #202c33; --wa-out: #005c4b; --wa-top: #1f2c34;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25); --shadow-lg: 0 24px 60px rgba(0,0,0,.5);
+  color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14.5px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: -0.015em; }
+h1 { font-size: 1.75rem; font-weight: 700; } h2 { font-size: 1.08rem; font-weight: 700; } h3 { font-size: .95rem; font-weight: 600; }
+p { margin: 0; }
+.num, .mono, td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button { font: inherit; cursor: pointer; color: inherit; }
+:focus-visible { outline: 3px solid var(--frost); outline-offset: 2px; border-radius: 6px; }
+.muted { color: var(--muted); }
+svg { display: block; }
+
+/* --- Estructura --- */
+.app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100%; }
+.side { background: var(--side); color: var(--side-ink); padding-block: 22px 18px; padding-inline: 14px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.brand { display: flex; gap: 11px; align-items: center; padding: 0 6px; }
+.brand b { font-family: var(--display); font-size: 1.12rem; font-weight: 800; color: #fff; display: block; line-height: 1.1; letter-spacing: -0.01em; }
+.brand small { color: var(--side-muted); font-size: .76rem; }
+nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-sec { font: 500 .66rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--side-muted); padding: 14px 10px 6px; }
+nav a { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: var(--side-ink); text-decoration: none; font-weight: 500; position: relative; }
+nav a svg { width: 18px; height: 18px; flex: none; opacity: .8; }
+nav a:hover { background: var(--side-hover); }
+nav a[aria-current="page"] { background: var(--side-hover); color: #fff; }
+nav a[aria-current="page"]::before { content: ""; position: absolute; left: -14px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+nav a[aria-current="page"] svg { opacity: 1; color: var(--accent); }
+nav a .badge { margin-left: auto; background: var(--accent); color: #fff; font: 600 .7rem var(--mono); border-radius: 99px; padding: 1px 7px; }
+nav a .fase { margin-left: auto; font: 500 .64rem var(--mono); color: var(--side-muted); }
+.side-card { margin-top: auto; background: var(--side-hover); border-radius: 12px; padding: 12px 14px; font-size: .8rem; color: var(--side-muted); display: flex; flex-direction: column; gap: 4px; }
+.side-card b { color: #f0b04f; font: 600 .7rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); padding-block: 12px; padding-inline: 28px; display: flex; align-items: center; gap: 16px; }
+.top .when { display: flex; flex-direction: column; line-height: 1.2; }
+.top .when b { font-family: var(--display); font-size: 1rem; }
+.top .when span { color: var(--muted); font-size: .8rem; }
+.search { margin-left: auto; position: relative; width: min(320px, 40vw); }
+.search input { width: 100%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 9px 12px 9px 34px; font: inherit; }
+.search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted); }
+.who { display: flex; align-items: center; gap: 9px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 700 .78rem var(--body); color: #fff; flex: none; }
+.who .avatar { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #000)); }
+.mark { width: 38px; height: 38px; border-radius: 11px; background: #fff; color: #111; display: grid; place-items: center; font: 800 1.02rem/1 Georgia, "Times New Roman", serif; letter-spacing: -0.06em; flex: none; position: relative; overflow: hidden; }
+.mark::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: linear-gradient(90deg, #1f8f46 0 33%, #fff 33% 66%, #d12f3c 66%); }
+.who small { display: block; color: var(--muted); font-size: .74rem; line-height: 1.1; }
+.who b { font-size: .86rem; display: block; line-height: 1.2; }
+
+main { padding-block: 24px 64px; padding-inline: 28px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.page-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+.page-head p { color: var(--muted); margin-top: 4px; max-width: 62ch; }
+.eyebrow { font: 500 .68rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+.eyebrow.demo { color: var(--warn); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.card-head p { color: var(--muted); font-size: .84rem; }
+.grid { display: grid; gap: 16px; }
+.g-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g-main { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); }
+
+/* --- Indicadores --- */
+.kpi { display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 14px; }
+.kpi .top-row { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: .84rem; font-weight: 500; }
+.kpi .ico { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; }
+.kpi .ico svg { width: 17px; height: 17px; }
+.kpi .v { font: 700 2rem/1 var(--display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kpi .foot { display: flex; justify-content: space-between; align-items: end; gap: 8px; font-size: .78rem; color: var(--muted); }
+.delta { font: 600 .74rem var(--mono); padding: 2px 7px; border-radius: 99px; }
+.delta.up { color: var(--ok); background: var(--ok-soft); } .delta.down { color: var(--crit); background: var(--crit-soft); }
+.tone-crit .ico { background: var(--crit-soft); color: var(--crit); }
+.tone-frost .ico { background: var(--frost-soft); color: var(--frost); }
+.tone-warn .ico { background: var(--warn-soft); color: var(--warn); }
+.tone-ok .ico { background: var(--ok-soft); color: var(--ok); }
+
+/* --- Alertas --- */
+.todo { display: flex; flex-direction: column; }
+.todo-item { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 4px; border-top: 1px solid var(--line); }
+.todo-item:first-child { border-top: 0; }
+.todo-item .ico { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; }
+.todo-item .ico svg { width: 18px; height: 18px; }
+.todo-item b { display: block; font-weight: 600; }
+.todo-item small { color: var(--muted); font-size: .82rem; }
+.go { border: 1px solid var(--line); background: var(--surface); border-radius: 9px; padding: 6px 12px; font-weight: 600; font-size: .82rem; white-space: nowrap; }
+.go:hover { border-color: var(--ink); }
+
+/* --- Chips y botones --- */
+.chip { display: inline-flex; align-items: center; gap: 5px; font: 600 .72rem var(--body); padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); } .chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.crit { background: var(--crit-soft); color: var(--crit); } .chip.info { background: var(--frost-soft); color: var(--frost); }
+.chip.mute { background: var(--sunk); color: var(--muted); border: 1px solid var(--line); }
+.chip svg { width: 12px; height: 12px; }
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 10px 16px; border-radius: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 35%, transparent); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn svg { width: 16px; height: 16px; }
+
+/* --- Pizza (ilustración por sabor) --- */
+.pz { --c: var(--accent); width: var(--sz, 34px); height: var(--sz, 34px); border-radius: 50%; flex: none; position: relative;
+  background:
+    radial-gradient(circle at 32% 36%, var(--c) 0 9%, transparent 10%),
+    radial-gradient(circle at 64% 30%, var(--c) 0 8%, transparent 9%),
+    radial-gradient(circle at 58% 64%, var(--c) 0 10%, transparent 11%),
+    radial-gradient(circle at 30% 66%, var(--c) 0 7%, transparent 8%),
+    radial-gradient(circle at 50% 50%, #f7e7c4 0 54%, #e9c27f 55% 68%, #c98a3f 69% 100%);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.flav { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.flav b { font-weight: 600; }
+.stack { display: flex; height: 6px; border-radius: 99px; overflow: hidden; background: var(--sunk); gap: 2px; }
+.stack i { display: block; height: 100%; }
+
+/* --- Tablas --- */
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+th { text-align: left; font: 500 .68rem var(--mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 11px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+th.n, td.n { text-align: right; }
+tr.total td { font-weight: 700; border-top: 2px solid var(--line); }
+.meter { height: 8px; background: var(--sunk); border-radius: 99px; position: relative; min-width: 80px; overflow: visible; }
+.meter i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--frost); }
+.meter.low i { background: var(--crit); } .meter.mid i { background: var(--warn); }
+
+/* --- Pedidos (tablero) --- */
+.board-wrap { overflow-x: auto; padding-bottom: 8px; margin-inline: -4px; padding-inline: 4px; }
+.board { display: grid; grid-template-columns: repeat(6, minmax(212px, 1fr)); gap: 14px; min-width: 1320px; }
+.col { display: flex; flex-direction: column; gap: 10px; }
+.col-h { display: flex; align-items: center; gap: 8px; padding: 2px 4px 4px; font-weight: 600; font-size: .9rem; }
+.col-h .dot { width: 9px; height: 9px; border-radius: 50%; }
+.col-h .n { margin-left: auto; font: 500 .74rem var(--mono); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; }
+.col-body { background: color-mix(in srgb, var(--surface) 45%, var(--bg)); border: 1px dashed var(--line); border-radius: 14px; padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 280px; }
+.ocard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: left; display: flex; flex-direction: column; gap: 10px; width: 100%; box-shadow: var(--shadow); transition: transform .12s ease, box-shadow .12s ease; }
+.ocard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.ocard.big { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow); }
+.ocard .r1 { display: flex; align-items: center; gap: 9px; }
+.ocard .r1 .avatar { width: 30px; height: 30px; font-size: .7rem; border-radius: 9px; }
+.ocard .r1 b { display: block; font-size: .9rem; line-height: 1.25; }
+.ocard .r1 small { color: var(--muted); font: .72rem var(--mono); }
+.ocard .r3 { display: flex; justify-content: space-between; align-items: center; font-size: .8rem; color: var(--muted); gap: 6px; flex-wrap: wrap; }
+.ocard .r3 strong { color: var(--ink); font: 600 .84rem var(--mono); }
+.ocard.flash { animation: flash 1.4s ease; }
+@keyframes flash { 0% { box-shadow: 0 0 0 4px var(--ok-soft), var(--shadow); } 100% { box-shadow: var(--shadow); } }
+
+/* --- Panel lateral del pedido --- */
+.scrim { position: fixed; inset: 0; background: rgba(10,14,18,.42); z-index: 40; animation: fade .2s ease; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100%); background: var(--bg); z-index: 41; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; animation: slide .26s cubic-bezier(.2,.8,.2,1); }
+.drawer-h { padding: 20px 24px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); background: var(--surface); border-bottom: 1px solid var(--line); display: flex; gap: 14px; align-items: start; }
+.drawer-h .x { margin-left: auto; border: 1px solid var(--line); background: var(--surface); width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+.drawer-b { overflow-y: auto; padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+.drawer-f { padding: 14px 24px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.drawer-f .sum { margin-right: auto; }
+.drawer-f .sum b { font: 700 1.25rem var(--display); display: block; }
+.drawer-f .sum small { color: var(--muted); }
+@keyframes slide { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fade { from { opacity: 0; } }
+.split { display: flex; gap: 4px; margin-top: 4px; height: 10px; border-radius: 99px; overflow: hidden; }
+.split i { display: block; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .8rem; color: var(--muted); margin-top: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.timeline li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; position: relative; padding-bottom: 16px; }
+.timeline li:not(:last-child)::after { content: ""; position: absolute; left: 14px; top: 30px; bottom: 2px; width: 2px; background: var(--line); }
+.timeline .tdot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--sunk); border: 1px solid var(--line); font: 600 .74rem var(--mono); }
+.timeline .tdot.hot { background: var(--accent); border-color: var(--accent); color: #fff; }
+.timeline .tdot.done { background: var(--ok); border-color: var(--ok); color: #fff; }
+.timeline b { display: block; }
+.timeline small { color: var(--muted); }
+
+/* --- WhatsApp --- */
+.wa-wrap { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 24px; align-items: start; }
+.phone { background: #0b0f13; border-radius: 46px; padding: 11px; box-shadow: var(--shadow-lg), inset 0 0 0 2px #2a313a; width: 100%; max-width: 380px; }
+.screen { border-radius: 36px; overflow: hidden; display: flex; flex-direction: column; height: 680px; background: var(--wa-bg); position: relative; }
+.status { background: var(--wa-top); color: #fff; display: flex; justify-content: space-between; padding: 10px 24px 4px; font: 600 .74rem var(--body); }
+.wa-head { background: var(--wa-top); color: #fff; padding: 6px 14px 12px; display: flex; gap: 10px; align-items: center; }
+.wa-head .pz { --sz: 38px; --c: var(--s-margherita); }
+.wa-head b { display: block; font-size: .95rem; }
+.wa-head small { opacity: .8; font-size: .74rem; }
+.wa-head .back { width: 18px; height: 18px; opacity: .9; }
+.msgs { flex: 1; overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 6px; scroll-behavior: smooth;
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 1.2px); background-size: 18px 18px; }
+.day { align-self: center; background: var(--wa-in); color: var(--muted); font: 600 .7rem var(--body); padding: 4px 10px; border-radius: 8px; margin: 4px 0; box-shadow: 0 1px 0 rgba(0,0,0,.06); }
+.msg { max-width: 82%; padding: 7px 9px 4px 10px; border-radius: 10px; font-size: .87rem; line-height: 1.38; box-shadow: 0 1px 0 rgba(0,0,0,.1); white-space: pre-line; color: var(--ink); animation: pop .22s ease; }
+.msg.in { background: var(--wa-in); align-self: flex-start; border-top-left-radius: 3px; }
+.msg.out { background: var(--wa-out); align-self: flex-end; border-top-right-radius: 3px; }
+.msg .meta { display: flex; justify-content: flex-end; gap: 3px; align-items: center; font: .64rem var(--body); color: var(--muted); margin-top: 1px; }
+.msg .meta svg { width: 15px; height: 15px; color: #53bdeb; }
+.msg.sys { align-self: center; background: #fff3c4; color: #5b4500; font-size: .76rem; text-align: center; box-shadow: none; }
+.typing { align-self: flex-end; background: var(--wa-out); border-radius: 10px; padding: 10px 14px; display: flex; gap: 4px; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 50% { opacity: .25; } }
+@keyframes pop { from { transform: translateY(6px); opacity: 0; } }
+.wa-input { background: var(--wa-bg); padding: 8px 10px 14px; display: flex; gap: 8px; align-items: center; }
+.wa-input span { flex: 1; background: var(--wa-in); border-radius: 22px; padding: 9px 14px; color: var(--muted); font-size: .85rem; }
+.wa-input i { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: grid; place-items: center; color: #fff; }
+.wa-input i svg { width: 18px; height: 18px; }
+.steps-bot { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.steps-bot li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--sunk); opacity: .55; transition: opacity .3s, background .3s, border-color .3s; }
+.steps-bot li.on { opacity: 1; background: var(--surface); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); box-shadow: var(--shadow); }
+.steps-bot .sic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); }
+.steps-bot li.on .sic { background: var(--ok); border-color: var(--ok); color: #fff; }
+.steps-bot .sic svg { width: 17px; height: 17px; }
+.steps-bot small { color: var(--muted); display: block; }
+.rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rule { display: flex; gap: 10px; align-items: start; font-size: .86rem; }
+.rule svg { width: 18px; height: 18px; color: var(--ok); flex: none; margin-top: 2px; }
+
+/* --- Instagram --- */
+.ig-top { background: var(--surface); color: var(--ink); display: flex; align-items: center; gap: 10px; padding: 8px 14px 10px; border-bottom: 1px solid var(--line); }
+.ig-top b { font-size: .9rem; display: block; line-height: 1.15; } .ig-top small { color: var(--muted); font-size: .72rem; }
+.ig-top .back { width: 18px; height: 18px; }
+.ig-ava { width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; background: #111; color: #fff; font: 700 .68rem var(--display); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px #d62976; }
+.ig-ava.u { background: hsl(200 40% 45%); box-shadow: none; }
+.ig-body { flex: 1; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; scroll-behavior: smooth; }
+.ig-post { aspect-ratio: 5 / 4; background: radial-gradient(circle at 50% 45%, #3a2a1c, #0d0a08 75%); display: grid; place-items: center; position: relative; flex: none; }
+.ig-post .tag { position: absolute; left: 12px; bottom: 12px; background: var(--accent); color: #fff; font: 700 .72rem var(--display); padding: 4px 9px; border-radius: 6px; letter-spacing: .02em; }
+.ig-acts { display: flex; gap: 14px; padding: 10px 14px 4px; color: var(--ink); } .ig-acts svg { width: 22px; height: 22px; }
+.ig-cap { padding: 0 14px 8px; font-size: .8rem; color: var(--ink); } .ig-cap span { color: var(--muted); }
+.ig-com { padding: 6px 14px; font-size: .8rem; display: flex; gap: 9px; align-items: flex-start; color: var(--ink); animation: pop .22s ease; }
+.ig-com .ig-ava { width: 26px; height: 26px; font-size: .56rem; box-shadow: none; }
+.ig-com.reply { padding-left: 48px; }
+.ig-com small { color: var(--muted); display: block; font-size: .68rem; margin-top: 2px; }
+.ig-dm { flex: 1; overflow-y: auto; background: var(--surface); padding: 12px 10px; display: flex; flex-direction: column; gap: 6px; scroll-behavior: smooth; }
+.ig-msg { max-width: 80%; padding: 8px 12px; border-radius: 18px; font-size: .86rem; line-height: 1.38; white-space: pre-line; animation: pop .22s ease; }
+.ig-msg.in { align-self: flex-start; background: var(--sunk); color: var(--ink); border-bottom-left-radius: 5px; }
+.ig-msg.out { align-self: flex-end; background: linear-gradient(135deg, #7b3ff2, #3d6cf0); color: #fff; border-bottom-right-radius: 5px; }
+.ig-btn { align-self: flex-start; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 9px 14px; font-weight: 600; font-size: .84rem; color: #128c4a; display: flex; gap: 7px; align-items: center; animation: pop .22s ease; }
+.ig-btn svg { width: 16px; height: 16px; }
+.ig-btn.tap { background: #e6f7ec; border-color: #128c4a; }
+.doc { display: flex; gap: 10px; align-items: center; background: color-mix(in srgb, var(--ink) 6%, transparent); border-radius: 8px; padding: 8px; margin-bottom: 6px; }
+.doc i { width: 30px; height: 36px; background: #e5463b; color: #fff; border-radius: 4px; display: grid; place-items: center; font: 700 .56rem var(--body); font-style: normal; flex: none; }
+.doc b { display: block; font-size: .82rem; } .doc small { color: var(--muted); font-size: .7rem; }
+.scenes { display: flex; gap: 6px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.scenes span { font: 600 .72rem var(--body); padding: 4px 10px; border-radius: 99px; background: var(--sunk); color: var(--muted); border: 1px solid var(--line); }
+.scenes span.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.funnel { display: flex; flex-direction: column; gap: 10px; }
+.funnel .row { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 10px; align-items: end; font-size: .84rem; }
+.funnel .lbl { font-size: .82rem; color: var(--ink-2); margin-bottom: 4px; }
+.funnel .bar { height: 12px; border-radius: 99px; background: var(--sunk); position: relative; overflow: hidden; }
+.funnel .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: linear-gradient(90deg, #d62976, #7b3ff2); opacity: .9; }
+.funnel .bar i.wa { background: #25a35a; }
+.funnel .row b { font-family: var(--mono); text-align: right; }
+
+/* --- Stock --- */
+.fcard { display: flex; flex-direction: column; gap: 12px; }
+.fcard .h { display: flex; align-items: center; gap: 12px; }
+.fcard .h .pz { --sz: 46px; }
+.fcard .big { font: 700 1.9rem/1 var(--display); font-variant-numeric: tabular-nums; }
+.fcard .big small { font: 500 .8rem var(--body); color: var(--muted); margin-left: 6px; }
+.gauge { position: relative; height: 12px; border-radius: 99px; background: var(--sunk); overflow: visible; }
+.gauge .res { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--frost) 35%, transparent) 0 4px, transparent 4px 8px); }
+.gauge .lib { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 99px; background: var(--frost); }
+.gauge .min { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--ink); border-radius: 2px; }
+.gauge.low .lib { background: var(--crit); }
+.fcard .foot { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); }
+
+/* --- Reparto --- */
+.route { display: flex; flex-direction: column; gap: 0; }
+.stop { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 0; position: relative; }
+.stop:not(:last-child)::after { content: ""; position: absolute; left: 16px; top: 42px; bottom: -8px; width: 2px; background: repeating-linear-gradient(var(--line) 0 4px, transparent 4px 8px); }
+.stop .sn { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 600 .8rem var(--mono); background: var(--surface); border: 2px solid var(--frost); color: var(--frost); }
+.stop.go-now .sn { background: var(--frost); color: #fff; }
+.stop b { display: block; } .stop small { color: var(--muted); }
+.cap { margin-top: 12px; }
+.cap .meter { height: 10px; }
+
+/* --- Cobranza --- */
+.aging { display: flex; height: 16px; border-radius: 99px; overflow: hidden; gap: 3px; }
+.aging i { display: block; height: 100%; }
+.bubble { background: var(--wa-out); color: var(--ink); border-radius: 12px; border-top-right-radius: 3px; padding: 10px 12px; font-size: .9rem; max-width: 460px; margin-left: auto; box-shadow: 0 1px 0 rgba(0,0,0,.1); white-space: pre-line; }
+.bubble.me { background: var(--frost-soft); border-top-right-radius: 12px; border-top-left-radius: 3px; margin-left: 0; }
+
+/* --- Clientes --- */
+.pipe { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.pipe-col { background: var(--sunk); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 140px; }
+.pipe-col h3 { font-size: .8rem; display: flex; justify-content: space-between; color: var(--ink-2); }
+.pcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; font-size: .82rem; }
+.pcard b { display: block; font-size: .86rem; }
+.pcard small { color: var(--muted); }
+.spark { width: 84px; height: 26px; }
+
+/* --- Plan --- */
+.phase { display: flex; flex-direction: column; gap: 10px; position: relative; padding-top: 18px; }
+.phase .bar { height: 6px; border-radius: 99px; background: var(--line); }
+.phase.now .bar { background: var(--accent); }
+.phase ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: .86rem; display: flex; flex-direction: column; gap: 4px; }
+.phase .tag { font: 600 .68rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.phase.now .tag { color: var(--accent); }
+.costbox { display: flex; gap: 24px; flex-wrap: wrap; }
+.costbox div b { font: 700 1.6rem var(--display); display: block; }
+.costbox div small { color: var(--muted); }
+
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 12px; font-weight: 500; max-width: calc(100% - 32px); z-index: 60; box-shadow: var(--shadow-lg); display: flex; gap: 10px; align-items: center; }
+.toast svg { width: 18px; height: 18px; color: var(--ok); flex: none; }
+.caption { position: fixed; left: 50%; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: rgba(12,16,20,.92); color: #fff; font: 600 1.12rem/1.35 var(--display); padding: 12px 22px; border-radius: 14px; z-index: 70; max-width: min(860px, calc(100% - 32px)); text-align: center; box-shadow: var(--shadow-lg); }
+.chart text { fill: var(--muted); font: 11px var(--mono); }
+
+@media (max-width: 1100px) {
+  .g-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g-main, .wa-wrap { grid-template-columns: minmax(0, 1fr); }
+  .g-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .phone { margin-inline: auto; }
+}
+@media (max-width: 780px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; height: auto; padding-block: 14px 10px; gap: 10px; }
+  nav { flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 4px; }
+  nav a { flex: none; } nav a .fase, .nav-sec, .side-card { display: none; }
+  nav a[aria-current="page"]::before { display: none; }
+  .top { padding-inline: 16px; } .top .who div, .search { display: none; }
+  main { padding-inline: 16px; }
+  .g-2, .g-3, .rules, .pipe { grid-template-columns: minmax(0, 1fr); }
+  .screen { height: 600px; }
+  .drawer-h, .drawer-b, .drawer-f { padding-inline: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="pz" id="cfg-logo" style="--sz:38px;--c:var(--accent)" aria-hidden="true"></span><div><b id="cfg-marca">Marca</b><small id="cfg-sub">Panel</small></div></div>
+    <nav id="nav" aria-label="Secciones"></nav>
+    <div class="side-card"><b>Demo</b>Datos de ejemplo para mostrar cómo funciona. Con el relevamiento se cargan los reales.</div>
+  </aside>
+  <div style="min-width:0">
+    <header class="top">
+      <div class="when"><b id="cfg-fecha">Hoy</b><span id="sec-name">Hoy</span></div>
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="q" type="search" placeholder="Buscar cliente o pedido"></label>
+      <div class="who"><span class="avatar" id="cfg-ini">--</span><div><b id="cfg-equipo">Equipo</b><small id="cfg-rol">Administradores</small></div></div>
+    </header>
+    <main id="view"></main>
+  </div>
+</div>
+<div id="drawer-root"></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<div id="caption" class="caption" hidden></div>
+
+<script>
+// =====================================================================
+// CONFIGURACIÓN DEL CLIENTE: para armar la demo de otro negocio, se cambia
+// este bloque y el bloque "Datos de ejemplo" de más abajo. Nada más.
+// =====================================================================
+const CONFIG = {
+  marca: "Il Fratelli",            // nombre que se ve en el panel y en el bot
+  subtitulo: "Pizza napoletana · mayorista",
+  equipo: "Los hermanos",          // quién usa el panel
+  rol: "Administradores",
+  iniciales: "IF",
+  fecha: "Sábado 10 de octubre",   // fecha que muestra la demo
+  acento: "#1f8f46",               // color de la marca, ej. "#1d6fd6" (vacío = rojo tomate de la plantilla)
+  // Palabras del rubro: la plantilla está escrita para pizzas congeladas.
+  // Para otro rubro se cambian los valores (no las claves), ej. pizzas: "empanadas".
+  logo: "IF",                      // iniciales para el logo de la barra lateral (vacío = dibujo de pizza)
+  instagram: "ill_fratelli",       // usuario de Instagram que muestra la sección del bot
+  lema: "Listas en 7 minutos",     // frase corta sobre la foto de la publicación (vacío = sin frase)
+  vocab: { pizzas: "pizzas", pizza: "pizza", sabores: "sabores", sabor: "sabor", freezer: "freezer", armar: "armar", armado: "armado" },
+};
+
+// ===== Íconos (trazo) =====
+const I = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const IC = {
+  home: I('<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>'),
+  orders: I('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
+  chat: I('<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12Z"/>'),
+  snow: I('<path d="M12 2v20M4.9 6.5l14.2 11M4.9 17.5l14.2-11M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/>'),
+  truck: I('<path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>'),
+  cash: I('<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M7 9.5v5M17 9.5v5"/>'),
+  users: I('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3 3 0 0 1 0 5.6M18 19a5 5 0 0 0-2.5-4.3"/>'),
+  map: I('<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/>'),
+  alert: I('<path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/>'),
+  box: I('<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/>'),
+  check: I('<path d="m5 12.5 4.5 4.5L19 7"/>'),
+  x: I('<path d="M6 6l12 12M18 6 6 18"/>'),
+  send: I('<path d="m4 12 16-8-6 16-2.5-6.5L4 12Z"/>'),
+  bot: I('<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12h.01M15 12h.01M9.5 16h5"/>'),
+  calc: I('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M16 15v2"/>'),
+  list: I('<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>'),
+  user: I('<circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>'),
+  plan: I('<path d="M4 19h16M6 15l4-4 3 3 5-6"/>'),
+  ig: I('<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/>'),
+  heart: I('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/>'),
+  wa: I('<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12Z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 1c-1-.5-1.5-1-2-2l1-1-1-2L9 9.5Z"/>'),
+  ticks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m2 13 4 4 8-9M10 16l1 1 8-9"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5 8 12l7 7"/></svg>',
+};
+
+// ===== Datos de ejemplo =====
+const CAPACIDAD_DIA = 150, PLAZO_BASES = "2 días hábiles", SENA = 0.30;
+const SABORES = {
+  margherita: { n: "Margherita", precio: 4500, freezer: 120, minimo: 80, receta: { muzza: 120, salsa: 80 }, vend: 210 },
+  rucula:     { n: "Rúcula", precio: 5200, freezer: 35, minimo: 60, receta: { muzza: 120, salsa: 80, rucula: 25 }, vend: 140 },
+  pepperoni:  { n: "Pepperoni", precio: 5300, freezer: 60, minimo: 50, receta: { muzza: 120, salsa: 80, pepperoni: 50 }, vend: 105 },
+  funghi:     { n: "Funghi", precio: 5600, freezer: 90, minimo: 50, receta: { muzza: 100, hongos: 80, parmesano: 20 }, vend: 95 },
+  pesto:      { n: "Pesto", precio: 5400, freezer: 40, minimo: 30, receta: { muzza: 120, pesto: 40 }, vend: 60 },
+  verdura:    { n: "Verdura", precio: 4900, freezer: 55, minimo: 30, receta: { verdura: 100, cebolla: 60, blanca: 80 }, vend: 40 },
+};
+const INSUMOS = {
+  bases:    { n: "Bases precocidas", u: "u.", stock: 120, porPizza: 1, prov: "Proveedor de bases" },
+  muzza:    { n: "Mozzarella", u: "kg", stock: 38, g: true, prov: "Lácteos" },
+  salsa:    { n: "Salsa de tomate", u: "kg", stock: 30, g: true, prov: "Almacén mayorista" },
+  rucula:   { n: "Rúcula", u: "kg", stock: 2, g: true, prov: "Verdulería" },
+  pepperoni:{ n: "Pepperoni", u: "kg", stock: 5, g: true, prov: "Fiambrería" },
+  hongos:   { n: "Hongos de pino y champiñones", u: "kg", stock: 6, g: true, prov: "Verdulería" },
+  parmesano:{ n: "Parmesano", u: "kg", stock: 3, g: true, prov: "Lácteos" },
+  pesto:    { n: "Pesto", u: "kg", stock: 2, g: true, prov: "Elaboración propia" },
+  verdura:  { n: "Verdura (acelga)", u: "kg", stock: 6, g: true, prov: "Verdulería" },
+  cebolla:  { n: "Cebolla", u: "kg", stock: 12, g: true, prov: "Verdulería" },
+  blanca:   { n: "Salsa blanca", u: "kg", stock: 5, g: true, prov: "Elaboración propia" },
+  envases:  { n: "Bolsas al vacío", u: "u.", stock: 600, porPizza: 1, prov: "Packaging" },
+  etiquetas:{ n: "Etiquetas con lote", u: "u.", stock: 600, porPizza: 1, prov: "Imprenta" },
+};
+const ESTADOS = [
+  { id: "aconfirmar", n: "A confirmar", c: "var(--accent)" }, { id: "confirmado", n: "Confirmado", c: "var(--frost)" }, { id: "armado", n: "En armado", c: "var(--warn)" },
+  { id: "listo", n: "Listo en freezer", c: "#5aa9d6" }, { id: "reparto", n: "En reparto", c: "#8b6fd6" }, { id: "entregado", n: "Entregado", c: "var(--ok)" },
+];
+const RESERVAN = ["confirmado", "armado", "listo"];
+const PEDIDOS = [
+  { id: 1039, cli: "Bar Bonaparte", zona: "Sur", entrega: "jue 08/10", estado: "entregado", origen: "WhatsApp", items: { margherita: 18, pepperoni: 18 } },
+  { id: 1041, cli: "Bar La Esquina", zona: "Sur", entrega: "mar 13/10", estado: "listo", origen: "WhatsApp", items: { margherita: 12, pepperoni: 12 } },
+  { id: 1043, cli: "Almacén Don Tito", zona: "Sur", entrega: "mar 13/10", estado: "listo", origen: "A mano", items: { rucula: 10, verdura: 10 } },
+  { id: 1044, cli: "Rotisería El Hornero", zona: "Oeste", entrega: "jue 15/10", estado: "confirmado", origen: "WhatsApp", items: { margherita: 28, funghi: 18 } },
+  { id: 1045, cli: "Café Plaza", zona: "Oeste", entrega: "jue 15/10", estado: "confirmado", origen: "WhatsApp", items: { pesto: 10 } },
+  { id: 1046, cli: "Supermercado Los Álamos", zona: "Norte", entrega: "sáb 10/10", estado: "reparto", origen: "Mail", items: { margherita: 20, rucula: 20, funghi: 20 } },
+  { id: 1048, cli: "Supermercado Del Parque", zona: "Norte", entrega: "sáb 24/10", estado: "aconfirmar", origen: "Bot", items: { margherita: 150, rucula: 100, pepperoni: 80, funghi: 70 }, grande: true },
+];
+const COBROS = [
+  { cli: "Bar La Esquina", monto: 184000, vence: "28/09", atraso: 12, avisos: 2 },
+  { cli: "Café Plaza", monto: 48000, vence: "07/10", atraso: 3, avisos: 1 },
+  { cli: "Supermercado Los Álamos", monto: 312000, vence: "20/10", atraso: 0, avisos: 0 },
+  { cli: "Rotisería El Hornero", monto: 96000, vence: "15/10", atraso: 0, avisos: 0 },
+];
+const CLIENTES = [
+  { cli: "Supermercado Los Álamos", tipo: "Supermercado", zona: "Norte", ultimo: 0, frec: "Semanal", hist: [40, 55, 50, 60, 58, 60] },
+  { cli: "Rotisería El Hornero", tipo: "Rotisería", zona: "Oeste", ultimo: 6, frec: "Semanal", hist: [30, 36, 40, 38, 44, 46] },
+  { cli: "Bar La Esquina", tipo: "Bar", zona: "Sur", ultimo: 5, frec: "Semanal", hist: [24, 20, 24, 28, 22, 24] },
+  { cli: "Almacén Don Tito", tipo: "Almacén", zona: "Sur", ultimo: 4, frec: "Quincenal", hist: [20, 0, 20, 0, 24, 20] },
+  { cli: "Café Plaza", tipo: "Café", zona: "Oeste", ultimo: 3, frec: "Semanal", hist: [8, 10, 10, 12, 10, 10] },
+  { cli: "Bar Bonaparte", tipo: "Bar", zona: "Sur", ultimo: 2, frec: "Semanal", hist: [30, 32, 36, 34, 36, 36] },
+  { cli: "Cervecería Lúpulo", tipo: "Bar", zona: "Norte", ultimo: 34, frec: "Quincenal", hist: [24, 0, 20, 0, 0, 0] },
+  { cli: "Kiosco 24 h Belgrano", tipo: "Kiosco", zona: "Norte", ultimo: 41, frec: "Mensual", hist: [12, 0, 0, 10, 0, 0] },
+];
+const PROSPECTOS = [
+  { n: "Bar El Farol", zona: "Norte", senal: "Pidió precios en Instagram", estado: 0 },
+  { n: "Autoservicio Mitre", zona: "Norte", senal: "Góndola de congelados", estado: 0 },
+  { n: "Almacén Quilmes Oeste", zona: "Sur", senal: "Comentó en Instagram que escribe", estado: 0 },
+  { n: "Almacén San Martín", zona: "Sur", senal: "Pidió la lista por Instagram", estado: 1 },
+  { n: "Almacén La Abuela", zona: "Sur", senal: "Vende otra marca", estado: 1 },
+  { n: "Cervecería Barril", zona: "Oeste", senal: "Cocina chica, abre de noche", estado: 2 },
+  { n: "Bar Bonaparte", zona: "Sur", senal: "Cliente desde agosto", estado: 3 },
+];
+// Embudo del bot de Instagram en los últimos 30 días: comentario o mensaje que pide precio, hasta el primer pedido.
+const EMBUDO_IG = [["Pidieron precio en Instagram", 46, "ig"], ["Recibieron el mensaje privado", 46, "ig"], ["Siguieron por WhatsApp", 27, "wa"], ["Recibieron la lista mayorista", 27, "wa"], ["Hicieron un primer pedido", 7, "wa"]];
+const SEMANAS = [["31/08", 520], ["07/09", 560], ["14/09", 540], ["21/09", 610], ["28/09", 590], ["05/10", 650]];
+
+// ===== Cálculos =====
+const $ = (n) => "$ " + Math.round(n).toLocaleString("es-AR");
+const fmt = (n, d = 0) => n.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const cant = (p) => Object.values(p.items).reduce((a, b) => a + b, 0);
+const total = (p) => Object.entries(p.items).reduce((a, [s, q]) => a + q * SABORES[s].precio, 0);
+const pz = (s, sz = 34) => `<span class="pz" style="--sz:${sz}px;--c:var(--s-${s})" aria-hidden="true"></span>`;
+const ini = (t) => t.replace(/^(Bar|Café|Supermercado|Almacén|Rotisería|Kiosco|Cervecería|Autoservicio)\s+/i, "").split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+const tono = (t) => { let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 45% 42%)`; };
+function reservadoPor(excluirId) {
+  const r = {}; Object.keys(SABORES).forEach(s => r[s] = 0);
+  PEDIDOS.filter(p => RESERVAN.includes(p.estado) && p.id !== excluirId).sort((a, b) => a.id - b.id).forEach(p => {
+    for (const [s, q] of Object.entries(p.items)) r[s] += Math.min(q, Math.max(0, SABORES[s].freezer - r[s]));
+  });
+  return r;
+}
+function plan(p) {
+  const res = reservadoPor(p.id);
+  const filas = Object.entries(p.items).map(([s, q]) => { const disp = Math.max(0, SABORES[s].freezer - res[s]); const delFreezer = Math.min(q, disp); return { s, q, disp, delFreezer, armar: q - delFreezer }; });
+  const aArmar = filas.reduce((a, f) => a + f.armar, 0);
+  const necesita = {}; Object.keys(INSUMOS).forEach(k => necesita[k] = 0);
+  filas.forEach(f => { necesita.bases += f.armar; necesita.envases += f.armar; necesita.etiquetas += f.armar; for (const [ing, g] of Object.entries(SABORES[f.s].receta)) necesita[ing] += f.armar * g / 1000; });
+  const compras = Object.entries(necesita).filter(([, v]) => v > 0).map(([k, v]) => ({ k, v, stock: INSUMOS[k].stock, falta: Math.max(0, v - INSUMOS[k].stock) }));
+  return { filas, aArmar, dias: Math.ceil(aArmar / CAPACIDAD_DIA), compras };
+}
+function alcanzaPara(k) {
+  const ins = INSUMOS[k]; if (ins.porPizza) return Math.floor(ins.stock / ins.porPizza);
+  const usos = Object.values(SABORES).map(s => s.receta[k]).filter(Boolean);
+  const prom = usos.reduce((a, b) => a + b, 0) / usos.length; return Math.floor(ins.stock * 1000 / prom);
+}
+function spark(vals, color, w = 84, h = 26) {
+  const max = Math.max(...vals, 1), min = Math.min(...vals), sx = (i) => 2 + i * (w - 4) / (vals.length - 1), sy = (v) => h - 3 - (v - min) / (max - min || 1) * (h - 6);
+  const d = vals.map((v, i) => `${i ? "L" : "M"}${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join("");
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true"><path d="${d}L${sx(vals.length - 1)},${h}L2,${h}Z" fill="${color}" opacity=".12"></path><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="${sx(vals.length - 1)}" cy="${sy(vals[vals.length - 1])}" r="3" fill="${color}"></circle></svg>`;
+}
+
+// ===== Navegación =====
+const SECCIONES = [
+  { id: "hoy", n: "Hoy", ic: "home", fase: "F2", grupo: "Operación" }, { id: "pedidos", n: "Pedidos", ic: "orders", fase: "F2" },
+  { id: "whatsapp", n: "Bot de WhatsApp", ic: "chat", fase: "F3" }, { id: "instagram", n: "Bot de Instagram", ic: "ig", fase: "F3" }, { id: "stock", n: "Stock y freezer", ic: "snow", fase: "F2" },
+  { id: "reparto", n: "Reparto", ic: "truck", fase: "F4", grupo: "Administración" }, { id: "cobranza", n: "Cobranza", ic: "cash", fase: "F4" },
+  { id: "clientes", n: "Clientes y captación", ic: "users", fase: "F5" }, { id: "plan", n: "Plan del proyecto", ic: "plan", fase: "", grupo: "Proyecto" },
+];
+let actual = "hoy";
+function renderNav() {
+  const pend = PEDIDOS.filter(p => p.estado === "aconfirmar").length;
+  document.getElementById("nav").innerHTML = SECCIONES.map(s => (s.grupo ? `<div class="nav-sec">${s.grupo}</div>` : "") +
+    `<a href="#${s.id}" data-s="${s.id}" ${s.id === actual ? 'aria-current="page"' : ""}>${IC[s.ic]}<span>${s.n}</span>${s.id === "pedidos" && pend ? `<span class="badge">${pend}</span>` : `<span class="fase">${s.fase}</span>`}</a>`).join("");
+  document.getElementById("sec-name").textContent = SECCIONES.find(s => s.id === actual).n;
+}
+function ir(id) { cerrarDrawer(); actual = SECCIONES.some(s => s.id === id) ? id : "hoy"; renderNav(); VISTAS[actual](); window.scrollTo(0, 0); }
+document.getElementById("nav").addEventListener("click", e => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); try { history.replaceState(null, "", "#" + a.dataset.s); } catch (_) {} ir(a.dataset.s); });
+document.getElementById("q").addEventListener("input", e => { const t = e.target.value.trim().toLowerCase(); if (actual !== "pedidos") ir("pedidos"); filtro = t; VISTAS.pedidos(); });
+let filtro = "";
+const view = document.getElementById("view");
+function toast(t) { const el = document.getElementById("toast"); el.innerHTML = IC.check + `<span>${t}</span>`; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 3600); }
+window.__caption = (t) => { const c = document.getElementById("caption"); c.textContent = t || ""; c.hidden = !t; };
+window.__ir = ir;
+const head = (eyebrow, title, sub, extra = "") => `<div class="page-head"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ""}</div>${extra}</div>`;
+
+// ===== Vistas =====
+const VISTAS = {};
+VISTAS.hoy = () => {
+  const pend = PEDIDOS.filter(p => p.estado === "aconfirmar");
+  const porEntregar = PEDIDOS.filter(p => ["confirmado", "armado", "listo", "reparto"].includes(p.estado)).reduce((a, p) => a + cant(p), 0);
+  const res = reservadoPor(null);
+  const bajos = Object.entries(SABORES).filter(([s, v]) => v.freezer - res[s] < v.minimo);
+  const vencido = COBROS.filter(c => c.atraso > 0).reduce((a, c) => a + c.monto, 0);
+  const g = pend.find(p => p.grande);
+  const items = [];
+  if (g) { const pl = plan(g); items.push(["crit", IC.orders, `Pedido #${g.id} · ${g.cli}`, `${cant(g)} pizzas para el ${g.entrega}. Entró por el bot: hay que armar ${pl.aArmar} y pedir ${pl.compras.find(c => c.k === "bases").falta} bases.`, "Revisar", "pedido"]); }
+  bajos.forEach(([s, v]) => items.push(["warn", IC.snow, `${v.n}: quedan ${v.freezer - res[s]} libres`, `El mínimo es ${v.minimo}. Conviene sumarla a la próxima tanda de armado.`, "Ver stock", "stock"]));
+  COBROS.filter(c => c.atraso >= 10).forEach(c => items.push(["warn", IC.cash, `${c.cli} debe ${$(c.monto)}`, `Hace ${c.atraso} días y ya recibió ${c.avisos} avisos. Conviene llamarlo.`, "Ver cobro", "cobranza"]));
+  items.push(["ok", IC.ig, "5 comercios pidieron la lista desde Instagram", "El bot les contestó por privado y les mandó la lista por WhatsApp. Quedaron en Captación.", "Ver", "instagram"]);
+  items.push(["ok", IC.truck, "Reparto zona Norte en camino", "Supermercado Los Álamos, 60 pizzas. Salió a las 9:40.", "Ver reparto", "reparto"]);
+  const tone = { crit: ["var(--crit-soft)", "var(--crit)"], warn: ["var(--warn-soft)", "var(--warn)"], ok: ["var(--ok-soft)", "var(--ok)"] };
+  // gráfico de área
+  const W = 560, H = 210, pl = 36, pb = 24, pt = 14, max = 800;
+  const xs = (i) => pl + 10 + i * ((W - pl - 26) / (SEMANAS.length - 1)), ys = (v) => H - pb - v / max * (H - pb - pt);
+  const line = SEMANAS.map(([, v], i) => `${i ? "L" : "M"}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join("");
+  const grid = [0, 200, 400, 600, 800].map(v => `<line x1="${pl}" x2="${W - 6}" y1="${ys(v)}" y2="${ys(v)}" stroke="var(--line)" stroke-dasharray="${v ? "3 4" : "0"}"></line><text x="${pl - 8}" y="${ys(v) + 4}" text-anchor="end">${v}</text>`).join("");
+  const labels = SEMANAS.map(([l], i) => `<text x="${xs(i)}" y="${H - 6}" text-anchor="middle">${l}</text>`).join("");
+  const last = SEMANAS.length - 1;
+  const top = Object.entries(SABORES).sort((a, b) => b[1].vend - a[1].vend); const vmax = top[0][1].vend; const vtot = top.reduce((a, [, v]) => a + v.vend, 0);
+  view.innerHTML = head("Resumen del día", "Buen día. Esto es lo que hay que mirar hoy.", "") + `
+  <div class="grid g-4">
+    <div class="card kpi tone-crit"><div class="top-row"><span>Pedidos a confirmar</span><span class="ico">${IC.orders}</span></div><span class="v">${pend.length}</span><div class="foot"><span>${pend.length ? `${cant(pend[0])} pizzas en espera` : "Todo confirmado"}</span></div></div>
+    <div class="card kpi tone-frost"><div class="top-row"><span>Pizzas por entregar</span><span class="ico">${IC.truck}</span></div><span class="v">${porEntregar}</span><div class="foot"><span class="delta up">+12 %</span>${spark([110, 126, 118, 140, 135, porEntregar], "var(--frost)")}</div></div>
+    <div class="card kpi tone-warn"><div class="top-row"><span>Sabores bajo el mínimo</span><span class="ico">${IC.snow}</span></div><span class="v">${bajos.length}</span><div class="foot"><span>${bajos.map(([, v]) => v.n).join(", ") || "Ninguno"}</span></div></div>
+    <div class="card kpi tone-ok"><div class="top-row"><span>Cobros vencidos</span><span class="ico">${IC.cash}</span></div><span class="v">${$(vencido)}</span><div class="foot"><span class="delta down">${COBROS.filter(c => c.atraso > 0).length} clientes</span>${spark([90, 140, 120, 210, 260, vencido / 1000], "var(--crit)")}</div></div>
+  </div>
+  <div class="grid g-main">
+    <section class="card"><div class="card-head"><h2>Para resolver hoy</h2><p>${items.length} pendientes</p></div><div class="todo">
+      ${items.map(([k, ic, t, s, b, d]) => `<div class="todo-item"><span class="ico" style="background:${tone[k][0]};color:${tone[k][1]}">${ic}</span><div><b>${t}</b><small>${s}</small></div><button class="go" data-go="${d}">${b}</button></div>`).join("")}</div></section>
+    <section class="card"><div class="card-head"><h2>Sabores más vendidos</h2><p>Últimos 30 días</p></div>
+      <div style="display:flex;flex-direction:column;gap:12px">${top.map(([s, v]) => `<div class="flav">${pz(s, 30)}<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;font-size:.86rem"><b>${v.n}</b><span class="num">${v.vend} <span class="muted">· ${Math.round(v.vend / vtot * 100)} %</span></span></div><div class="meter" style="margin-top:5px"><i style="width:${v.vend / vmax * 100}%;background:var(--s-${s})"></i></div></div></div>`).join("")}</div></section>
+  </div>
+  <section class="card"><div class="card-head"><div><h2>Pizzas vendidas por semana</h2><p>Últimas 6 semanas · la semana pasada fue la mejor</p></div><span class="delta up">+10 % vs. semana anterior</span></div>
+    <div class="tbl-wrap"><svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" style="max-height:260px" role="img" aria-label="Pizzas vendidas por semana">
+      <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".28"></stop><stop offset="1" stop-color="var(--accent)" stop-opacity="0"></stop></linearGradient></defs>
+      ${grid}<path d="${line}L${xs(last)},${ys(0)}L${xs(0)},${ys(0)}Z" fill="url(#ga)"></path><path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"></path>
+      ${SEMANAS.map(([, v], i) => `<circle cx="${xs(i)}" cy="${ys(v)}" r="${i === last ? 5 : 3}" fill="${i === last ? "var(--accent)" : "var(--surface)"}" stroke="var(--accent)" stroke-width="2"></circle>`).join("")}
+      <text x="${xs(last)}" y="${ys(SEMANAS[last][1]) - 12}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${SEMANAS[last][1]}</text>${labels}</svg></div></section>`;
+  view.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { if (b.dataset.go === "pedido") { ir("pedidos"); abrirPedido(1048); } else ir(b.dataset.go); });
+};
+
+VISTAS.pedidos = () => {
+  const ps = PEDIDOS.filter(p => !filtro || p.cli.toLowerCase().includes(filtro) || String(p.id).includes(filtro));
+  const sem = PEDIDOS.filter(p => p.estado !== "entregado");
+  view.innerHTML = head("Fase 2 · pedidos y producción", "Pedidos", "Cada pedido avanza por etapas. Tocá una tarjeta para ver qué sale del freezer, qué hay que armar y qué hay que comprar.",
+    `<div class="costbox"><div><b class="num">${sem.length}</b><small>pedidos abiertos</small></div><div><b class="num">${sem.reduce((a, p) => a + cant(p), 0)}</b><small>pizzas</small></div><div><b class="num">${$(sem.reduce((a, p) => a + total(p), 0))}</b><small>a facturar</small></div></div>`) + `
+  <div class="board-wrap"><div class="board">${ESTADOS.map(e => { const l = ps.filter(p => p.estado === e.id); return `
+    <div class="col"><div class="col-h"><span class="dot" style="background:${e.c}"></span>${e.n}<span class="n">${l.length}</span></div><div class="col-body">${l.map(p => `
+      <button class="ocard ${p.grande && p.estado === "aconfirmar" ? "big" : ""}" data-id="${p.id}">
+        <div class="r1"><span class="avatar" style="background:${tono(p.cli)}">${ini(p.cli)}</span><div style="min-width:0"><b>${p.cli}</b><small>#${p.id} · zona ${p.zona}</small></div></div>
+        <div class="stack">${Object.entries(p.items).map(([s, q]) => `<i style="flex:${q};background:var(--s-${s})"></i>`).join("")}</div>
+        <div class="r3"><strong>${cant(p)} pizzas</strong><span>${p.entrega}</span></div>
+        <div class="r3">${p.origen === "Bot" ? `<span class="chip ok">${IC.bot}Bot de WhatsApp</span>` : `<span class="chip mute">${p.origen}</span>`}<span class="num">${$(total(p))}</span></div>
+      </button>`).join("") || `<p class="muted" style="font-size:.8rem;padding:8px">Sin pedidos</p>`}</div></div>`; }).join("")}</div></div>
+  <div class="legend">${Object.entries(SABORES).map(([s, v]) => `<span><i style="background:var(--s-${s})"></i>${v.n}</span>`).join("")}</div>`;
+  view.querySelectorAll(".ocard").forEach(c => c.onclick = () => abrirPedido(+c.dataset.id));
+};
+
+function cerrarDrawer() { document.getElementById("drawer-root").innerHTML = ""; document.removeEventListener("keydown", escClose); }
+function escClose(e) { if (e.key === "Escape") cerrarDrawer(); }
+function abrirPedido(id) {
+  const p = PEDIDOS.find(x => x.id === id); if (!p) return;
+  const pl = plan(p), tot = total(p), est = ESTADOS.find(e => e.id === p.estado);
+  const faltan = pl.compras.filter(c => c.falta > 0);
+  const salen = cant(p) - pl.aArmar;
+  const root = document.getElementById("drawer-root");
+  root.innerHTML = `<div class="scrim" id="scrim"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Pedido ${p.id}">
+    <div class="drawer-h"><span class="avatar" style="background:${tono(p.cli)};width:46px;height:46px;border-radius:13px">${ini(p.cli)}</span>
+      <div><span class="eyebrow">Pedido #${p.id} · ${p.origen === "Bot" ? "entró por el bot de WhatsApp" : p.origen} · zona ${p.zona}</span><h2 style="font-size:1.35rem">${p.cli}</h2>
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><span class="chip" style="background:color-mix(in srgb, ${est.c} 16%, transparent);color:${est.c}">${est.n}</span><span class="chip mute">Entrega ${p.entrega}</span><span class="chip mute">${cant(p)} pizzas</span></div></div>
+      <button class="x" id="x" aria-label="Cerrar">${IC.x}</button></div>
+    <div class="drawer-b">
+      <section class="card"><div class="card-head"><h2>Freezer y armado</h2><p>${salen} salen del freezer · ${pl.aArmar} hay que armar</p></div>
+        <div class="split"><i style="flex:${salen};background:var(--frost)"></i><i style="flex:${pl.aArmar};background:var(--accent)"></i></div>
+        <div class="legend"><span><i style="background:var(--frost)"></i>Sale del freezer</span><span><i style="background:var(--accent)"></i>Hay que armar</span></div>
+        <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Sabor</th><th class="n">Pedido</th><th class="n">Libres</th><th class="n">Del freezer</th><th class="n">A armar</th></tr></thead><tbody>
+        ${pl.filas.map(f => `<tr><td><span class="flav">${pz(f.s, 28)}<b>${SABORES[f.s].n}</b></span></td><td class="n">${f.q}</td><td class="n">${f.disp}</td><td class="n">${f.delFreezer}</td><td class="n">${f.armar ? `<b style="color:var(--accent)">${f.armar}</b>` : "-"}</td></tr>`).join("")}
+        <tr class="total"><td>Total</td><td class="n">${cant(p)}</td><td></td><td class="n">${salen}</td><td class="n">${pl.aArmar}</td></tr></tbody></table></div></section>
+      <div class="grid g-2">
+        <section class="card"><div class="card-head"><h2>Compras</h2><p>Para lo que hay que armar</p></div>
+          <div style="display:flex;flex-direction:column;gap:10px">${pl.compras.map(c => { const i = INSUMOS[c.k], d = i.g ? 1 : 0, pct = Math.min(100, c.stock / c.v * 100); return `<div><div style="display:flex;justify-content:space-between;font-size:.84rem;gap:8px"><span>${i.n}</span><span class="num">${fmt(c.v, d)} / ${fmt(c.stock, d)} ${i.u}</span></div><div class="meter ${c.falta ? "low" : ""}" style="margin-top:4px"><i style="width:${pct}%"></i></div>${c.falta ? `<small style="color:var(--crit);font-weight:600">Faltan ${fmt(Math.ceil(c.falta))} ${i.u}</small>` : ""}</div>`; }).join("")}</div></section>
+        <section class="card"><div class="card-head"><h2>Plan para llegar</h2><p>Capacidad: ${CAPACIDAD_DIA} por día</p></div>
+          <ol class="timeline">
+            <li><span class="tdot ${faltan.length ? "hot" : "done"}">1</span><div><b>${faltan.length ? `Pedir ${faltan.map(c => `${fmt(Math.ceil(c.falta))} ${INSUMOS[c.k].n.toLowerCase()}`).join(", ")}` : "No hace falta comprar"}</b><small>${faltan.length ? `El proveedor necesita ${PLAZO_BASES}. Pedir hasta el mar 20/10.` : "Los insumos alcanzan."}</small></div></li>
+            <li><span class="tdot">2</span><div><b>Armar ${pl.aArmar} pizzas en ${pl.dias} ${pl.dias === 1 ? "día" : "días"}</b><small>Propuesta: miércoles 21 y jueves 22/10.</small></div></li>
+            <li><span class="tdot">3</span><div><b>Congelar y etiquetar con lote</b><small>Listas en el freezer el viernes 23/10.</small></div></li>
+            <li><span class="tdot">4</span><div><b>Entregar el ${p.entrega}</b><small>Zona ${p.zona}. Se suma solo al reparto.</small></div></li>
+          </ol></section>
+      </div>
+    </div>
+    <div class="drawer-f"><div class="sum"><small>Total a precio mayorista${p.grande ? ` · seña ${SENA * 100} %: ${$(tot * SENA)}` : ""}</small><b class="num">${$(tot)}</b></div>
+      ${p.estado === "aconfirmar" ? `<button class="btn" id="cambio">Proponer otra fecha</button><button class="btn primary" id="confirmar">${IC.check}Confirmar pedido</button>` : `<button class="btn" id="cerrar2">Cerrar</button>`}
+    </div></aside>`;
+  document.getElementById("x").onclick = cerrarDrawer; document.getElementById("scrim").onclick = cerrarDrawer;
+  document.addEventListener("keydown", escClose);
+  document.getElementById("x").focus();
+  const c2 = document.getElementById("cerrar2"); if (c2) c2.onclick = cerrarDrawer;
+  const cb = document.getElementById("cambio"); if (cb) cb.onclick = () => toast("Quedó un borrador para el cliente con la fecha nueva. No se manda sin tu OK.");
+  const c = document.getElementById("confirmar");
+  if (c) c.onclick = () => { p.estado = "confirmado"; cerrarDrawer(); renderNav(); if (actual === "pedidos") VISTAS.pedidos(); const card = view.querySelector(`.ocard[data-id="${p.id}"]`); card && card.classList.add("flash"); toast(`Pedido #${p.id} confirmado: ${salen} apartadas del freezer y ${pl.aArmar} sumadas al plan de armado.`); };
+}
+
+function guion() {
+  const p = PEDIDOS.find(x => x.id === 1048), tot = total(p);
+  return [
+    ["in", "Hola! Necesito 400 pizzas para el sábado 24, para la góndola", "10:12", -1],
+    ["out", `Hola, soy el asistente virtual de ${CONFIG.marca}. Te ayudo a cargar el pedido y una persona del equipo lo confirma.\n¿Cuántas querés de cada sabor? Tenemos ${Object.values(SABORES).map(v => v.n).join(", ").replace(/, ([^,]*)$/, " y $1")}.`, "10:12", 0],
+    ["in", "150 margherita, 100 de rúcula, 80 pepperoni y el resto funghi", "10:14", -1],
+    ["out", "Perfecto, te queda así:\n• Margherita 150\n• Rúcula 100\n• Pepperoni 80\n• Funghi 70\nTotal: 400 pizzas. ¿Lo entregamos en la dirección de siempre (zona Norte)?", "10:14", 1],
+    ["in", "Sí, la de siempre. Entre las 8 y las 10 si se puede", "10:15", -1],
+    ["out", `Anotado: sábado 24/10 entre 8 y 10.\nA precio mayorista son ${$(tot)}. Para pedidos de más de 200 pizzas pedimos una seña del 30 %: ${$(tot * SENA)}.\nLo dejo cargado y el equipo te confirma hoy antes de las 18.`, "10:15", 2],
+    ["in", "Genial, gracias!", "10:16", -1],
+    ["out", "¡Gracias a vos! Quedó como pedido #1048, a confirmar. Si querés cambiar algo, escribime por acá.", "10:16", 3],
+    ["sys", "El pedido #1048 pasó solo al panel, en Pedidos → A confirmar", "", 4],
+  ];
+}
+let reproduciendo = false;
+const PASOS_BOT = [
+  [IC.user, "Reconoce al cliente", "Supermercado Del Parque, zona Norte, cliente desde junio."],
+  [IC.list, "Pide el detalle por sabor", "Ordena las cantidades y revisa que sumen 400."],
+  [IC.calc, "Calcula total y seña", "Con la lista de precios mayorista y la regla de seña del 30 %."],
+  [IC.orders, "Carga el pedido a confirmar", "Queda en el panel con el plan de armado y compras ya calculado."],
+  [IC.alert, "Te avisa", "Te llega la alerta para revisar y confirmar con un clic."],
+];
+VISTAS.whatsapp = () => {
+  view.innerHTML = head("Fase 3 · bot de WhatsApp con la API oficial de Meta", "Así toma un pedido grande el bot", "El cliente escribe como siempre. El bot pide el detalle, calcula el total y deja el pedido para que lo confirmes vos.", `<button class="btn primary" id="play">${IC.chat}Reproducir la charla</button>`) + `
+  <div class="wa-wrap">
+    <div class="phone"><div class="screen">
+      <div class="status"><span>10:16</span><span>5G ▮▮▮</span></div>
+      <div class="wa-head"><span class="back">${IC.back}</span>${pz("margherita", 38)}<div><b>${CONFIG.marca} · Pedidos</b><small>Cuenta de empresa · asistente virtual</small></div></div>
+      <div class="msgs" id="msgs"></div>
+      <div class="wa-input"><span>Mensaje</span><i>${IC.send}</i></div>
+    </div></div>
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+      <section class="card"><div class="card-head"><h2>Lo que hace el bot</h2><p>Se van marcando a medida que avanza la charla</p></div>
+        <ol class="steps-bot" id="pasos">${PASOS_BOT.map(([ic, t, s]) => `<li><span class="sic">${ic}</span><div><b>${t}</b><small>${s}</small></div></li>`).join("")}</ol></section>
+      <section class="card"><div class="card-head"><h2>Reglas que no se rompen</h2></div><div class="rules">
+        ${["Dice que es un asistente virtual. Nunca se hace pasar por una persona.", "Solo habla del negocio: pedidos, sabores, precios, reparto.", "Nunca confirma solo: el pedido queda a confirmar.", "Precios solo de la lista. Descuentos los ve una persona.", "Deriva a una persona ante un reclamo o si se lo piden.", "Entiende audios y repite pedidos (\"lo mismo que la semana pasada\")."].map(t => `<div class="rule">${IC.check}<span>${t}</span></div>`).join("")}</div></section>
+    </div>
+  </div>`;
+  const msgs = document.getElementById("msgs"), pasos = [...document.querySelectorAll("#pasos li")];
+  const burbuja = (m) => m[0] === "sys" ? `<div class="msg sys">${m[1]}</div>` : `<div class="msg ${m[0]}">${m[1]}<span class="meta">${m[2]}${m[0] === "out" ? IC.ticks : ""}</span></div>`;
+  const marcar = (i) => { if (i >= 0) pasos.slice(0, i + 1).forEach(li => li.classList.add("on")); };
+  const g = guion(); msgs.innerHTML = '<span class="day">HOY</span>' + g.slice(0, 2).map(burbuja).join(""); marcar(0);
+  document.getElementById("play").onclick = async () => {
+    if (reproduciendo) return; reproduciendo = true;
+    const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    msgs.innerHTML = '<span class="day">HOY</span>'; pasos.forEach(li => li.classList.remove("on"));
+    for (const m of g) {
+      if (actual !== "whatsapp") break;
+      if (m[0] === "out" && !quieto) { msgs.insertAdjacentHTML("beforeend", '<div class="typing" id="typ"><i></i><i></i><i></i></div>'); msgs.scrollTop = msgs.scrollHeight; await esperar(1100); document.getElementById("typ")?.remove(); }
+      msgs.insertAdjacentHTML("beforeend", burbuja(m)); msgs.scrollTop = msgs.scrollHeight; marcar(m[3]);
+      await esperar(quieto ? 0 : (m[0] === "in" ? 1300 : 1800));
+    }
+    reproduciendo = false;
+  };
+};
+const esperar = (ms) => new Promise(r => setTimeout(r, ms));
+
+// ===== Bot de Instagram: comentario -> mensaje privado -> WhatsApp -> lista =====
+function guionIG() {
+  const m = CONFIG.marca;
+  return [
+    ["post", "com", "almacen.sanmartin", "Hola! Tengo un almacén en Quilmes Oeste, ¿me pasás precios por mayor?", 0],
+    ["post", "rep", CONFIG.instagram, "¡Hola! Te escribimos por privado 📩", 1],
+    ["dm", "in", "", `¡Hola! Gracias por escribirnos 🍕 Soy el asistente virtual de ${m}.\nLa lista mayorista, con precios y días de reparto por zona, la mandamos por WhatsApp.`, 2],
+    ["dm", "btn", "", "Pedir la lista por WhatsApp", 2],
+    ["dm", "tap", "", "", 3],
+    ["wa", "out", "", "Hola! Vengo de Instagram, quiero la lista mayorista", 3],
+    ["wa", "in", "", `¡Hola! Soy el asistente virtual de ${m}. Para mandarte la lista que corresponde: ¿cómo se llama tu comercio y en qué zona está?`, 3],
+    ["wa", "out", "", "Almacén San Martín, Quilmes Oeste", 3],
+    ["wa", "doc", "", "Ahí va la lista 👆 A zona Sur repartimos martes y viernes.\n¿Querés que te arme un pedido de prueba?", 4],
+    ["wa", "sys", "", "Almacén San Martín quedó en Captación → Pidió la lista, con su zona y la publicación de donde vino", 5],
+  ];
+}
+const PASOS_IG = [
+  [IC.list, "Detecta el pedido de precio", "Lee comentarios y mensajes: «precio», «lista», «por mayor», «info»."],
+  [IC.chat, "Contesta en público, sin precios", "Una respuesta corta y variada. Los precios nunca van en público."],
+  [IC.send, "Manda un mensaje privado", "Uno solo por comentario y dentro de los 7 días, como pide Meta. Con un botón a WhatsApp."],
+  [IC.wa, "Sigue por WhatsApp", "El comercio toca el botón y el bot le pregunta nombre y zona."],
+  [IC.box, "Manda la lista mayorista", "El PDF vigente, los días de reparto de su zona y la oferta de un pedido de prueba."],
+  [IC.users, "Lo anota en Captación", "Comercio, zona y publicación de origen, para seguirlo y medir qué publicaciones venden."],
+];
+function pantallaIG(esc) {
+  const ava = `<span class="ig-ava">${CONFIG.iniciales}</span>`;
+  const barra = `<div class="status" style="background:var(--surface);color:var(--ink)"><span>11:02</span><span>5G ▮▮▮</span></div>`;
+  if (esc === "post") return `${barra}
+    <div class="ig-top">${ava}<div><b>${CONFIG.instagram}</b><small>Buenos Aires</small></div></div>
+    <div class="ig-body" id="igc"><div class="ig-post">${pz("margherita", 170)}${CONFIG.lema ? `<span class="tag">${CONFIG.lema}</span>` : ""}</div>
+      <div class="ig-acts">${IC.heart}${IC.chat}${IC.send}</div>
+      <div class="ig-cap"><b>${CONFIG.instagram}</b> Sumá ${CONFIG.marca} a tu negocio 🍕 <span>#mayorista</span></div></div>`;
+  if (esc === "dm") return `${barra}
+    <div class="ig-top"><span class="back">${IC.back}</span>${ava}<div><b>${CONFIG.marca}</b><small>${CONFIG.instagram} · cuenta de empresa</small></div></div>
+    <div class="ig-dm" id="igc"><span class="day">Respuesta a tu comentario</span></div>
+    <div class="wa-input" style="background:var(--surface)"><span>Enviar mensaje…</span></div>`;
+  return `<div class="status"><span>11:03</span><span>5G ▮▮▮</span></div>
+    <div class="wa-head"><span class="back">${IC.back}</span>${pz("margherita", 38)}<div><b>${CONFIG.marca} · Pedidos</b><small>Cuenta de empresa · asistente virtual</small></div></div>
+    <div class="msgs" id="igc"><span class="day">HOY</span></div>
+    <div class="wa-input"><span>Mensaje</span><i>${IC.send}</i></div>`;
+}
+function itemIG(m) {
+  const [esc, t, u, x] = m;
+  if (t === "com") return `<div class="ig-com"><span class="ig-ava u">AS</span><div><b>${u}</b> ${x}<small>2 min · Responder</small></div></div>`;
+  if (t === "rep") return `<div class="ig-com reply"><span class="ig-ava">${CONFIG.iniciales}</span><div><b>${u}</b> ${x}<small>Ahora · respuesta automática</small></div></div>`;
+  if (t === "btn") return `<button class="ig-btn" tabindex="-1">${IC.wa}${x}</button>`;
+  if (t === "sys") return `<div class="msg sys">${x}</div>`;
+  if (t === "doc") return `<div class="msg in"><div class="doc"><i>PDF</i><div><b>Lista mayorista ${CONFIG.marca} · octubre.pdf</b><small>2 páginas · 240 kB</small></div></div>${x}<span class="meta">11:04</span></div>`;
+  if (esc === "dm") return `<div class="ig-msg ${t}">${x}</div>`;
+  return `<div class="msg ${t}">${x}<span class="meta">${t === "out" ? "11:03" + IC.ticks : "11:04"}</span></div>`;
+}
+let reproduciendoIG = false;
+VISTAS.instagram = () => {
+  const tope = EMBUDO_IG[0][1];
+  view.innerHTML = head("Fase 3 · bot de Instagram con la API oficial de Meta", "De un comentario a la lista mayorista", "Cuando un comercio pide precio en una publicación, el bot le escribe por privado, lo lleva a WhatsApp y ahí le manda la lista. Nadie que pregunta queda sin respuesta.", `<button class="btn primary" id="play-ig">${IC.ig}Reproducir el recorrido</button>`) + `
+  <div class="wa-wrap">
+    <div><div class="phone"><div class="screen" id="igs"></div></div>
+      <div class="scenes" id="esc"><span data-e="post">Comentario</span><span data-e="dm">Mensaje privado</span><span data-e="wa">WhatsApp</span></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+      <section class="card"><div class="card-head"><h2>Lo que hace el bot</h2><p>Lo que ve el comercio, paso a paso</p></div>
+        <ol class="steps-bot" id="pasos-ig">${PASOS_IG.map(([ic, t, s]) => `<li><span class="sic">${ic}</span><div><b>${t}</b><small>${s}</small></div></li>`).join("")}</ol></section>
+      <section class="card"><div class="card-head"><div><h2>Consultas de Instagram</h2><p>Últimos 30 días · de la consulta al primer pedido</p></div><span class="chip ok">${Math.round(EMBUDO_IG[EMBUDO_IG.length - 1][1] / tope * 100)} % compró</span></div>
+        <div class="funnel">${EMBUDO_IG.map(([n, v, c]) => `<div class="row"><div><div class="lbl">${n}</div><div class="bar"><i class="${c}" style="width:${v / tope * 100}%"></i></div></div><b>${v}</b></div>`).join("")}</div></section>
+      <section class="card"><div class="card-head"><h2>Reglas que no se rompen</h2></div><div class="rules">
+        ${["Usa la API oficial de Meta: la cuenta no corre riesgo de bloqueo.", "Un solo mensaje privado por comentario, dentro de los 7 días.", "Si es consumidor final, le dice dónde comprar en vez de mandar la lista.", "Dice que es un asistente virtual.", "Las respuestas públicas varían, para que no parezca spam.", "Lo que no entiende pasa a una persona."].map(t => `<div class="rule">${IC.check}<span>${t}</span></div>`).join("")}</div></section>
+    </div>
+  </div>`;
+  const pasos = [...document.querySelectorAll("#pasos-ig li")], scr = document.getElementById("igs");
+  const marcar = (i) => pasos.forEach((li, k) => li.classList.toggle("on", k <= i));
+  const escena = (e) => { scr.innerHTML = pantallaIG(e); document.querySelectorAll("#esc span").forEach(s => s.classList.toggle("on", s.dataset.e === e)); return document.getElementById("igc"); };
+  const g = guionIG(); let box = escena("post"); box.insertAdjacentHTML("beforeend", g.slice(0, 2).map(itemIG).join("")); marcar(1);
+  document.getElementById("play-ig").onclick = async () => {
+    if (reproduciendoIG) return; reproduciendoIG = true;
+    const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let actualEsc = ""; marcar(-1);
+    for (const m of g) {
+      if (actual !== "instagram") break;
+      if (m[0] !== actualEsc) { actualEsc = m[0]; box = escena(m[0]); await esperar(quieto ? 0 : 500); }
+      if (m[1] === "tap") { box.querySelector(".ig-btn")?.classList.add("tap"); marcar(m[4]); await esperar(quieto ? 0 : 900); continue; }
+      if (["in", "doc"].includes(m[1]) && !quieto) { box.insertAdjacentHTML("beforeend", '<div class="typing" id="typ" style="align-self:flex-start"><i></i><i></i><i></i></div>'); box.scrollTop = box.scrollHeight; await esperar(1000); document.getElementById("typ")?.remove(); }
+      box.insertAdjacentHTML("beforeend", itemIG(m)); box.scrollTop = box.scrollHeight; marcar(m[4]);
+      await esperar(quieto ? 0 : (m[1] === "out" || m[1] === "com" ? 1300 : 1700));
+    }
+    reproduciendoIG = false;
+  };
+};
+
+VISTAS.stock = () => {
+  const res = reservadoPor(null);
+  view.innerHTML = head("Fase 2 · stock", "Stock y freezer", "Cada pedido confirmado aparta pizzas del freezer. Cada tanda de armado descuenta insumos según la receta.") + `
+  <div class="grid g-3">${Object.entries(SABORES).map(([s, v]) => { const libre = v.freezer - res[s], bajo = libre < v.minimo, esc = Math.max(v.freezer, v.minimo) * 1.15;
+    return `<section class="card fcard"><div class="h">${pz(s, 46)}<div style="flex:1;min-width:0"><b>${v.n}</b><br><span class="muted" style="font-size:.8rem">${$(v.precio)} mayorista</span></div>${bajo ? '<span class="chip crit">Armar</span>' : '<span class="chip ok">Bien</span>'}</div>
+      <div class="big num">${libre}<small>libres de ${v.freezer}</small></div>
+      <div class="gauge ${bajo ? "low" : ""}"><span class="res" style="left:0;width:${v.freezer / esc * 100}%"></span><span class="lib" style="width:${libre / esc * 100}%"></span><span class="min" style="left:${v.minimo / esc * 100}%"></span></div>
+      <div class="foot"><span>${res[s] ? `${res[s]} apartadas para pedidos` : "Nada apartado"}</span><span>Mínimo ${v.minimo}</span></div></section>`; }).join("")}</div>
+  <div class="legend" style="margin-top:-6px"><span><i style="background:var(--frost)"></i>Libres</span><span><i style="background:repeating-linear-gradient(135deg, color-mix(in srgb, var(--frost) 35%, transparent) 0 3px, transparent 3px 6px)"></i>Apartadas</span><span><i style="background:var(--ink);width:3px"></i>Mínimo</span></div>
+  <div class="grid g-main">
+    <section class="card"><div class="card-head"><h2>Insumos</h2><p>"Alcanza para" usa el promedio de las recetas</p></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Insumo</th><th class="n">Stock</th><th>Alcanza para</th><th>Proveedor</th></tr></thead><tbody>
+      ${Object.entries(INSUMOS).map(([k, i]) => { const a = alcanzaPara(k), cls = a < 150 ? "low" : a < 300 ? "mid" : ""; return `<tr><td><b style="font-weight:600">${i.n}</b></td><td class="n">${fmt(i.stock)} ${i.u}</td><td><div style="display:flex;align-items:center;gap:10px"><div class="meter ${cls}" style="flex:1"><i style="width:${Math.min(100, a / 600 * 100)}%"></i></div><span class="num" style="min-width:76px;text-align:right">${fmt(a)} pizzas</span></div></td><td class="muted">${i.prov}</td></tr>`; }).join("")}</tbody></table></div></section>
+    <section class="card"><div class="card-head"><h2>Recetas</h2><p>Gramos por pizza</p></div><div style="display:flex;flex-direction:column;gap:12px">
+      ${Object.entries(SABORES).map(([s, v]) => `<div class="flav">${pz(s, 30)}<div style="min-width:0"><b>${v.n}</b><br><small class="muted">${Object.entries(v.receta).map(([k, g]) => `${INSUMOS[k].n.toLowerCase()} ${g} g`).join(" · ")}</small></div></div>`).join("")}</div></section>
+  </div>`;
+};
+
+VISTAS.reparto = () => {
+  const dias = {};
+  PEDIDOS.filter(p => p.estado !== "entregado").forEach(p => (dias[p.entrega] ||= []).push(p));
+  const key = (s) => { const [d, m] = s.split(" ")[1].split("/"); return +m * 100 + +d; };
+  const orden = Object.keys(dias).sort((a, b) => key(a) - key(b));
+  const st = (p) => p.estado === "reparto" ? '<span class="chip info">En camino</span>' : p.estado === "listo" ? '<span class="chip ok">Listo para cargar</span>' : p.estado === "aconfirmar" ? '<span class="chip crit">A confirmar</span>' : '<span class="chip mute">En preparación</span>';
+  const CAP = 450;
+  view.innerHTML = head("Fase 4 · reparto", "Reparto", "Los pedidos confirmados se agrupan por día y zona. El chofer abre su hoja desde el celular y marca cada entrega.") + `
+  <div class="grid g-2">${orden.map(d => { const ps = dias[d], n = ps.reduce((a, p) => a + cant(p), 0); return `
+    <section class="card"><div class="card-head"><div><h2>${d}${d === "sáb 10/10" ? " · hoy" : ""}</h2><p>Zona ${[...new Set(ps.map(p => p.zona))].join(", ")} · ${ps.length} ${ps.length === 1 ? "parada" : "paradas"}</p></div><span class="num" style="font-weight:600">${n} pizzas</span></div>
+      <div class="route">${ps.map((p, i) => `<div class="stop ${p.estado === "reparto" ? "go-now" : ""}"><span class="sn">${i + 1}</span><div><b>${p.cli}</b><small>#${p.id} · ${cant(p)} pizzas · zona ${p.zona}</small></div>${st(p)}</div>`).join("")}</div>
+      <div class="cap"><div style="display:flex;justify-content:space-between;font-size:.78rem" class="muted"><span>Carga de la camioneta</span><span class="num">${n} / ${CAP}</span></div><div class="meter ${n > CAP ? "low" : ""}" style="margin-top:4px"><i style="width:${Math.min(100, n / CAP * 100)}%"></i></div>${n > CAP ? '<small style="color:var(--crit);font-weight:600">No entra en un viaje: hacen falta dos.</small>' : ""}</div></section>`; }).join("")}</div>`;
+};
+
+VISTAS.cobranza = () => {
+  const tot = COBROS.reduce((a, c) => a + c.monto, 0);
+  const b = { aldia: COBROS.filter(c => !c.atraso), poco: COBROS.filter(c => c.atraso > 0 && c.atraso < 10), mucho: COBROS.filter(c => c.atraso >= 10) };
+  const s = (l) => l.reduce((a, c) => a + c.monto, 0);
+  const est = (c) => c.atraso >= 10 ? '<span class="chip crit">Llamar</span>' : c.atraso > 0 ? '<span class="chip warn">Vencida</span>' : '<span class="chip ok">Al día</span>';
+  view.innerHTML = head("Fase 4 · cobranza de cuentas corrientes", "Cobranza", "Avisos a los 1, 5 y 10 días. Al día 10 el aviso te llega a vos, no al cliente. Todo queda como borrador hasta que lo apruebes.") + `
+  <section class="card"><div class="card-head"><div><h2>${$(tot)} a cobrar</h2><p>${COBROS.length} clientes con saldo</p></div></div>
+    <div class="aging"><i style="flex:${s(b.aldia)};background:var(--ok)"></i><i style="flex:${s(b.poco)};background:var(--warn)"></i><i style="flex:${s(b.mucho)};background:var(--crit)"></i></div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>Al día ${$(s(b.aldia))}</span><span><i style="background:var(--warn)"></i>1 a 9 días ${$(s(b.poco))}</span><span><i style="background:var(--crit)"></i>10 días o más ${$(s(b.mucho))}</span></div></section>
+  <div class="grid g-main">
+    <section class="card"><div class="tbl-wrap"><table><thead><tr><th>Cliente</th><th class="n">Saldo</th><th>Vence</th><th class="n">Atraso</th><th>Estado</th><th></th></tr></thead><tbody>
+      ${COBROS.map((c, i) => `<tr><td><span class="flav"><span class="avatar" style="background:${tono(c.cli)};width:30px;height:30px;font-size:.68rem;border-radius:9px">${ini(c.cli)}</span><b>${c.cli}</b></span></td><td class="n">${$(c.monto)}</td><td class="num">${c.vence}</td><td class="n">${c.atraso ? c.atraso + " d" : "-"}</td><td>${est(c)}</td><td>${c.atraso ? `<button class="go" data-b="${i}">Ver aviso</button>` : ""}</td></tr>`).join("")}</tbody></table></div></section>
+    <section class="card" id="borrador"><div class="card-head"><h2>Borrador del aviso</h2></div><p class="muted">Tocá "Ver aviso" en un cliente con atraso.</p></section>
+  </div>`;
+  view.querySelectorAll("[data-b]").forEach(btn => btn.onclick = () => {
+    const c = COBROS[+btn.dataset.b], alDueno = c.atraso >= 10;
+    const txt = alDueno ? `${c.cli} no pagó ${$(c.monto)} y ya van ${c.atraso} días. Recibió ${c.avisos} avisos. Te conviene llamarlo vos.` : `Hola, ¿cómo va? Te recuerdo el saldo de ${$(c.monto)} que venció el ${c.vence}. Si ya lo pagaste, avisame y lo marco. ¡Gracias!`;
+    document.getElementById("borrador").innerHTML = `<div class="card-head"><h2>${alDueno ? "Aviso para vos" : `Aviso para ${c.cli}`}</h2><span class="chip warn">Borrador</span></div>
+      <div class="bubble ${alDueno ? "me" : ""}">${txt}</div><p class="muted" style="font-size:.8rem;margin-top:10px">${alDueno ? "Al día 10 el sistema no le escribe más al cliente: te avisa a vos." : "Sale por WhatsApp como plantilla aprobada por Meta, solo si lo aprobás."}</p>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn primary" id="aprobar">${IC.send}${alDueno ? "Marcar como visto" : "Aprobar y enviar"}</button><button class="btn" id="descartar">Descartar</button></div>`;
+    document.getElementById("aprobar").onclick = () => toast("En la demo no se manda nada. En el sistema real sale por WhatsApp.");
+    document.getElementById("descartar").onclick = () => VISTAS.cobranza();
+  });
+};
+
+VISTAS.clientes = () => {
+  const reac = CLIENTES.filter(c => c.ultimo >= 30);
+  const cols = ["Para contactar", "Mensaje enviado", "Pidió muestra", "Cliente nuevo"];
+  view.innerHTML = head("Fase 5 · clientes y captación", "Clientes y captación", "Quién compra, quién dejó de comprar y qué locales nuevos conviene salir a buscar.") + `
+  <section class="card"><div class="card-head"><h2>Clientes mayoristas</h2><p>Pizzas por semana, últimas 6 semanas</p></div><div class="tbl-wrap"><table><thead><tr><th>Cliente</th><th>Zona</th><th>Compra</th><th>Tendencia</th><th class="n">Último pedido</th></tr></thead><tbody>
+    ${CLIENTES.map(c => `<tr><td><span class="flav"><span class="avatar" style="background:${tono(c.cli)};width:30px;height:30px;font-size:.68rem;border-radius:9px">${ini(c.cli)}</span><span><b>${c.cli}</b><br><small class="muted">${c.tipo}</small></span></span></td><td>${c.zona}</td><td>${c.frec}</td><td>${spark(c.hist, c.ultimo >= 30 ? "var(--crit)" : "var(--frost)")}</td><td class="n">${c.ultimo === 0 ? "hoy" : `hace ${c.ultimo} d`}${c.ultimo >= 30 ? '<br><span class="chip warn">Reactivar</span>' : ""}</td></tr>`).join("")}</tbody></table></div></section>
+  <div class="grid g-main">
+    <section class="card"><div class="card-head"><div><h2>Locales para salir a buscar</h2><p>Salen de Google Maps y de quienes piden precios en Instagram. Se contactan a mano, de a 5.</p></div></div>
+      <div class="pipe">${cols.map((t, i) => { const l = PROSPECTOS.filter(p => p.estado === i); return `<div class="pipe-col"><h3>${t}<span class="num">${l.length}</span></h3>${l.map(p => `<div class="pcard"><b>${p.n}</b><small>${p.zona} · ${p.senal}</small></div>`).join("")}</div>`; }).join("")}</div></section>
+    <section class="card"><div class="card-head"><h2>Para reactivar</h2><span class="chip warn">${reac.length} clientes</span></div>
+      <p class="muted" style="font-size:.84rem">${reac.map(c => c.cli).join(" y ")} no piden hace más de 30 días.</p>
+      <div class="bubble" style="margin-top:12px">Hola, ¿cómo va? Hace un mes que no te mandamos pizzas y quería saber si te faltó algo o si querés que te arme un pedido. Pasamos por tu zona los sábados.</div>
+      <p class="muted" style="font-size:.78rem;margin-top:8px">Borrador. Se manda solo si lo aprobás.</p></section>
+  </div>`;
+};
+
+VISTAS.plan = () => {
+  const fases = [
+    ["Fase 1", "Relevamiento", ["Charla con los hermanos", "Lista de precios, recetas y clientes", "Chats reales de WhatsApp"], true],
+    ["Fase 2", "Pedidos, stock y panel", ["Pedidos por etapa", "Freezer e insumos por receta", "Plan de armado y compras"], false],
+    ["Fase 3", "Bots de WhatsApp e Instagram", ["Número oficial de Meta", "Toma pedidos y los deja a confirmar", "Instagram: comentario, privado y lista por WhatsApp"], false],
+    ["Fase 4", "Reparto y cobranza", ["Hoja del chofer por zona", "Avisos de saldo como borradores"], false],
+    ["Fase 5", "Captación", ["Clientes para reactivar", "Locales nuevos por zona", "Reseñas en Google"], false],
+  ];
+  view.innerHTML = head("Proyecto", "Plan del proyecto", "Se arma por partes: cada fase tiene que andar bien antes de pasar a la siguiente.") + `
+  <section class="card"><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">${fases.map(([t, n, l, now]) => `<div class="phase ${now ? "now" : ""}"><div class="bar"></div><span class="tag">${t}${now ? " · ahora" : ""}</span><h2>${n}</h2><ul>${l.map(x => `<li>${x}</li>`).join("")}</ul></div>`).join("")}</div></section>
+  <div class="grid g-2">
+    <section class="card"><div class="card-head"><div><h2>Costo mensual de las herramientas</h2><p>Lo pagan ustedes, con cuentas a su nombre</p></div></div>
+      <div class="costbox"><div><b class="num">≈ US$ 38</b><small>escenario bajo · ≈ $ 58.000</small></div><div><b class="num">≈ US$ 124</b><small>escenario alto · ≈ $ 190.000</small></div></div>
+      <p class="muted" style="font-size:.82rem;margin-top:12px">Incluye base de datos, publicación del panel, WhatsApp oficial, la IA del bot e IVA. Dólar BNA vendedor $ 1.535 (09/10/2026). Se confirma con los volúmenes reales.</p></section>
+    <section class="card"><div class="card-head"><h2>Qué cambia para ustedes</h2></div><div class="rules" style="grid-template-columns:1fr">
+      ${["Los pedidos dejan de quedar en el chat: están todos en un lugar.", "Saben qué armar y qué comprar sin hacer cuentas.", "El bot contesta mientras ustedes están armando.", "Nadie que pide precio en Instagram queda sin respuesta.", "Nada sale a un cliente sin que ustedes lo aprueben."].map(t => `<div class="rule">${IC.check}<span>${t}</span></div>`).join("")}</div></section>
+  </div>`;
+};
+
+// ===== Aplicar la configuración =====
+(function aplicarConfig() {
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set("cfg-marca", CONFIG.marca); set("cfg-sub", CONFIG.subtitulo); set("cfg-fecha", CONFIG.fecha);
+  set("cfg-equipo", CONFIG.equipo); set("cfg-rol", CONFIG.rol); set("cfg-ini", CONFIG.iniciales);
+  document.title = "Panel " + CONFIG.marca;
+  if (CONFIG.logo) { const l = document.getElementById("cfg-logo"); l.className = "mark"; l.textContent = CONFIG.logo; }
+  if (CONFIG.acento) { document.documentElement.style.setProperty("--accent", CONFIG.acento); }
+  const pares = Object.entries(CONFIG.vocab).filter(([k, v]) => k !== v);
+  if (!pares.length) return;
+  pares.sort((a, b) => b[0].length - a[0].length);
+  const re = new RegExp("\\b(" + pares.map(([k]) => k).join("|") + ")\\b", "gi");
+  const mapa = Object.fromEntries(pares);
+  const cambiar = (txt) => txt.replace(re, (m) => { const v = mapa[m.toLowerCase()]; return m[0] === m[0].toUpperCase() ? v[0].toUpperCase() + v.slice(1) : v; });
+  const recorrer = (root) => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const t = cambiar(n.nodeValue); if (t !== n.nodeValue) n.nodeValue = t; } };
+  const obs = new MutationObserver(() => { obs.disconnect(); recorrer(document.body); obs.observe(document.body, { childList: true, subtree: true }); });
+  window.__vocab = () => recorrer(document.body);
+  recorrer(document.body); obs.observe(document.body, { childList: true, subtree: true });
+})();
+
+ir((location.hash || "#hoy").slice(1));
+</script>
+
+</body>
+</html>
